@@ -1,9 +1,10 @@
 {
-  "name": "dsh-auto-continue",
+  "name": "@kemomimi12/dsh-auto-continue",
   "version": "1.0.0",
   "description": "Automatic turn-level resume for DeepSeek Harness sessions: continues after transient model-request failures, merges provider outages into one storm, and always yields to a manual stop.",
   "type": "module",
   "license": "MIT",
+  "author": "kemomimi12",
   "keywords": [
     "dsh",
     "deepseek-harness",
@@ -12,6 +13,18 @@
     "retry",
     "resilience"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kemomimi12/dsh-auto-continue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kemomimi12/dsh-auto-continue/issues"
+  },
+  "homepage": "https://github.com/kemomimi12/dsh-auto-continue#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
   "exports": {
     ".": "./index.js",
     "./locale/*.json": "./locale/*.json",
@@ -28,7 +41,10 @@
   "scripts": {
     "test": "node test.mjs",
     "test:storm": "node storm.mjs",
-    "test:replay": "node replay.mjs"
+    "test:replay": "node replay.mjs",
+    "verify": "node test.mjs && node storm.mjs && node replay.mjs && node verify-pack.mjs",
+    "verify:pack": "node verify-pack.mjs",
+    "prepublishOnly": "npm run verify",    "prepack": "node -e \"const p=require('./package.json');if(!p.name.startsWith('@kemomimi12/'))throw new Error('unexpected scope: '+p.name);if(p.repository.url.indexOf('kemomimi12/dsh-auto-continue')<0)throw new Error('repository must match the package scope');console.log('prepack checks passed:',p.name+'@'+p.version)\""
   },
   "engines": {
     "node": ">=22"

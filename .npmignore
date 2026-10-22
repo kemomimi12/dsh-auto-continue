@@ -1,0 +1,23 @@
+# `files` in package.json already whitelists the published set. This file is a
+# second line of defence so a future edit to `files` cannot leak test scaffolding
+# or repository metadata into the tarball.
+
+# Verification harnesses: useful in the repo, useless in a consumer's install.
+test.mjs
+storm.mjs
+replay.mjs
+compare.mjs
+
+# Repository metadata.
+.github/
+.gitignore
+.gitattributes
+.git/
+
+# Local scratch.
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+inject.json
+.research/

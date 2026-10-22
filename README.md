@@ -33,15 +33,42 @@ if (finish.kind === 'error' || finish.kind === 'aborted') {
 
 ## 安装
 
-### 方式一：`plugin_manager`（推荐）
+本包发布在 **GitHub Packages**（`npm.pkg.github.com`），不是 npm 官方源。
 
-**先 clone 下来**（本包未发布到 npm，所以只能用本地路径）：
+> **GitHub Packages 要求认证**：即使是公开包，读取也需要一个带 `read:packages` 权限的 token。这是 GitHub 的平台限制，不是本包的设定。嫌麻烦就直接用[方式二](#方式二直接从-github-clone)从 GitHub clone。
+
+### 方式一：从 GitHub Packages 安装
+
+**1. 准备 token**
+
+去 [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens) 建一个 token，勾选 `read:packages`。
+
+**2. 配置 `.npmrc`**
+
+在你的 `~/.npmrc`（或 profile 目录下的 `.npmrc`）加入：
+
+```ini
+@kemomimi12:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+然后把 token 放进环境变量 `GITHUB_TOKEN`，或直接把 `${GITHUB_TOKEN}` 换成 token 原文。
+
+**3. 安装**
+
+让 dsh 里的模型调用 `plugin_manager` 工具：
+
+```
+install_bundle  target: @kemomimi12/dsh-auto-continue
+```
+
+### 方式二：直接从 GitHub clone
+
+不需要任何 token：
 
 ```bash
 git clone https://github.com/kemomimi12/dsh-auto-continue.git D:/plugins/dsh-auto-continue
 ```
-
-然后让 dsh 里的模型调用 `plugin_manager` 工具：
 
 ```
 install_bundle  target: D:/plugins/dsh-auto-continue
@@ -49,20 +76,20 @@ install_bundle  target: D:/plugins/dsh-auto-continue
 
 `install_bundle` 会自己处理 pnpm 安装、写 profile 的 `package.json` 与 bundle 列表，**不要手工编辑**。
 
-### 方式二：手工写 profile
+### 方式三：手工写 profile
 
 如果不想用 `plugin_manager`，编辑你的 profile（`$DSH_HOME/profiles/<name>/`）：
 
 1. `package.json` 的 `dependencies` 加一行：
 
    ```json
-   "dsh-auto-continue": "link:D:/plugins/dsh-auto-continue"
+   "@kemomimi12/dsh-auto-continue": "link:D:/plugins/dsh-auto-continue"
    ```
 
 2. 同一个 `package.json` 的 `dsh.profile.bundles` 追加：
 
    ```json
-   "dsh-auto-continue"
+   "@kemomimi12/dsh-auto-continue"
    ```
 
 3. 在 profile 目录跑一次 `pnpm install`。
@@ -73,6 +100,12 @@ install_bundle  target: D:/plugins/dsh-auto-continue
 
 ```
 include:auto-continue    enabled: true    fiberPhase: active
+```
+
+再确认日志里有这一行（说明启动自检通过）：
+
+```
+auto-continue: host interfaces verified, resuming enabled
 ```
 
 ## 配套配置：retryPolicy
@@ -140,7 +173,7 @@ include:auto-continue    enabled: true    fiberPhase: active
 
 ```yaml
 - id: auto-continue
-  name: 'dsh-auto-continue'
+  name: '@kemomimi12/dsh-auto-continue'
   config:
     enabled: true
     maxResumesPerWindow: 5        # 滚动窗口内最多自动续行几次
@@ -200,9 +233,11 @@ Do not repeat tool calls whose results are already in the transcript.
 ## 测试
 
 ```bash
-npm test             # 28 项行为测试（含 7 项启动自检用例）
+npm run verify       # 全部：28 项行为 + 风暴 + 回放 + 打包校验
+npm test             # 仅 28 项行为测试（含 7 项启动自检用例）
 npm run test:storm   # 风暴合并效果演示
 npm run test:replay  # 真实故障序列回放
+npm run verify:pack  # 检查 npm 包内容（必需文件齐全、无测试文件泄漏）
 ```
 
 | 文件 | 作用 |
@@ -210,10 +245,28 @@ npm run test:replay  # 真实故障序列回放
 | `test.mjs` | 28 项行为测试，用假 host 驱动真实插件逻辑 |
 | `storm.mjs` | 对比有/无风暴合并：同一次故障从 5 次续行降到 1 次 |
 | `replay.mjs` | 用 2026-10-21 真实会话事件序列回放决策 |
+| `verify-pack.mjs` | 用 `npm pack --dry-run` 断言打包内容 |
 
-`test.mjs` 覆盖：临时失败续行、永久错误不续行、用户中止不续行、人类输入撤回续行、连续失败上限、**模型输出不算进展**、正常结束才算进展、失败续行不重复购买、滚动预算、单风暴只买一次、不同码各自成风暴、超窗口算新风暴、子代理开关、busy 时不打扰、卸载后不再触发。
+`test.mjs` 覆盖：临时失败续行、永久错误不续行、用户中止不续行、人类输入撤回续行、连续失败上限、**模型输出不算进展**、正常结束才算进展、失败续行不重复购买、滚动预算、单风暴只买一次、不同码各自成风暴、超窗口算新风暴、子代理开关、busy 时不打扰、卸载后不再触发、**7 项启动自检**。
 
 > 这些测试不依赖 dsh 运行时，只依赖 Node ≥ 22。
+
+## 发布
+
+维护者流程。推 tag 即触发 `.github/workflows/publish.yml`：
+
+```bash
+npm version patch        # 或 minor / major，自动改 package.json 并打 tag
+git push --follow-tags
+```
+
+工作流会：
+
+1. 校验 tag 与 `package.json` 的 version 一致（不一致直接失败）
+2. 跑 `npm run verify`（行为测试 + 风暴 + 回放 + 打包校验）
+3. `npm publish` 到 `https://npm.pkg.github.com`，用仓库自带的 `GITHUB_TOKEN`
+
+`prepublishOnly` 会在真正发布前再跑一遍 `verify`，`prepack` 会校验包名作用域与 `repository` 是否匹配。
 
 ## 已知限制
 
