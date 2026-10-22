@@ -1,0 +1,5 @@
+# Normalize line endings so the plugin behaves identically on every platform.
+* text=auto eol=lf
+
+# Keep the icon byte-identical.
+*.svg text eol=lf

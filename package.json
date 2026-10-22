@@ -1,0 +1,41 @@
+{
+  "name": "dsh-auto-continue",
+  "version": "1.0.0",
+  "description": "Automatic turn-level resume for DeepSeek Harness sessions: continues after transient model-request failures, merges provider outages into one storm, and always yields to a manual stop.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "retry",
+    "resilience"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test.mjs",
+    "test:storm": "node storm.mjs",
+    "test:replay": "node replay.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

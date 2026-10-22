@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Local verification scratch files
+inject.json
+.research/

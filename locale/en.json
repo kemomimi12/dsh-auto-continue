@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Auto Continue",
+    "description": "Resumes a session automatically after a transient model-request failure ends its turn, and stands down on permanent errors, budget exhaustion, or a manual stop."
+  }
+}
