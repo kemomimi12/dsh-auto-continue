@@ -33,38 +33,21 @@ if (finish.kind === 'error' || finish.kind === 'aborted') {
 
 ## 安装
 
-本包发布在 **GitHub Packages**（`npm.pkg.github.com`），不是 npm 官方源。
+本包发布在 **npm 官方源**（`registry.npmjs.org`），公开包，**安装不需要任何 token**。
 
-> **GitHub Packages 要求认证**：即使是公开包，读取也需要一个带 `read:packages` 权限的 token。这是 GitHub 的平台限制，不是本包的设定。嫌麻烦就直接用[方式二](#方式二直接从-github-clone)从 GitHub clone。
-
-### 方式一：从 GitHub Packages 安装
-
-**1. 准备 token**
-
-去 [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens) 建一个 token，勾选 `read:packages`。
-
-**2. 配置 `.npmrc`**
-
-在你的 `~/.npmrc`（或 profile 目录下的 `.npmrc`）加入：
-
-```ini
-@kemomimi12:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
-
-然后把 token 放进环境变量 `GITHUB_TOKEN`，或直接把 `${GITHUB_TOKEN}` 换成 token 原文。
-
-**3. 安装**
+### 方式一：从 npm 安装（推荐）
 
 让 dsh 里的模型调用 `plugin_manager` 工具：
 
 ```
-install_bundle  target: @kemomimi12/dsh-auto-continue
+install_bundle  target: @xfufu/dsh-auto-continue
 ```
+
+`install_bundle` 会自己处理 pnpm 安装、写 profile 的 `package.json` 与 bundle 列表，**不要手工编辑**。
 
 ### 方式二：直接从 GitHub clone
 
-不需要任何 token：
+不需要 npm 也能装，适合想改源码的人：
 
 ```bash
 git clone https://github.com/kemomimi12/dsh-auto-continue.git D:/plugins/dsh-auto-continue
@@ -74,8 +57,6 @@ git clone https://github.com/kemomimi12/dsh-auto-continue.git D:/plugins/dsh-aut
 install_bundle  target: D:/plugins/dsh-auto-continue
 ```
 
-`install_bundle` 会自己处理 pnpm 安装、写 profile 的 `package.json` 与 bundle 列表，**不要手工编辑**。
-
 ### 方式三：手工写 profile
 
 如果不想用 `plugin_manager`，编辑你的 profile（`$DSH_HOME/profiles/<name>/`）：
@@ -83,13 +64,19 @@ install_bundle  target: D:/plugins/dsh-auto-continue
 1. `package.json` 的 `dependencies` 加一行：
 
    ```json
-   "@kemomimi12/dsh-auto-continue": "link:D:/plugins/dsh-auto-continue"
+   "@xfufu/dsh-auto-continue": "^1.0.0"
+   ```
+
+   或指向本地 clone：
+
+   ```json
+   "@xfufu/dsh-auto-continue": "link:D:/plugins/dsh-auto-continue"
    ```
 
 2. 同一个 `package.json` 的 `dsh.profile.bundles` 追加：
 
    ```json
-   "@kemomimi12/dsh-auto-continue"
+   "@xfufu/dsh-auto-continue"
    ```
 
 3. 在 profile 目录跑一次 `pnpm install`。
@@ -173,7 +160,7 @@ auto-continue: host interfaces verified, resuming enabled
 
 ```yaml
 - id: auto-continue
-  name: '@kemomimi12/dsh-auto-continue'
+  name: '@xfufu/dsh-auto-continue'
   config:
     enabled: true
     maxResumesPerWindow: 5        # 滚动窗口内最多自动续行几次
@@ -264,9 +251,37 @@ git push --follow-tags
 
 1. 校验 tag 与 `package.json` 的 version 一致（不一致直接失败）
 2. 跑 `npm run verify`（行为测试 + 风暴 + 回放 + 打包校验）
-3. `npm publish` 到 `https://npm.pkg.github.com`，用仓库自带的 `GITHUB_TOKEN`
+3. `npm publish --provenance --access public` 到 `https://registry.npmjs.org`
 
 `prepublishOnly` 会在真正发布前再跑一遍 `verify`，`prepack` 会校验包名作用域与 `repository` 是否匹配。
+
+### 一次性准备：`NPM_TOKEN`
+
+工作流需要仓库 secret `NPM_TOKEN`，默认的 `GITHUB_TOKEN` **不能**发布到 npm 官方源。
+
+1. 登录 npm → **Access Tokens** → **Generate New Token** → 选 **Automation**
+   （Automation 类型绕过 2FA 提示，适合 CI）
+2. 复制 token
+3. GitHub 仓库 → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+   - Name: `NPM_TOKEN`
+   - Secret: 粘贴 token
+
+### 本地发布（可选）
+
+不想走 CI 时，本地也能发：
+
+```bash
+npm login          # 首次
+npm publish        # prepublishOnly 会自动跑 verify
+```
+
+### 试运行
+
+发布前可先手动跑一次不发布的校验：
+
+> GitHub 仓库 → **Actions** → **publish** → **Run workflow** → 勾选 `dry_run`
+
+这会走完全部校验但不执行 `npm publish`。
 
 ## 已知限制
 
