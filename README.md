@@ -35,16 +35,16 @@ if (finish.kind === 'error' || finish.kind === 'aborted') {
 
 ### 方式一：`plugin_manager`（推荐）
 
-在你的 dsh profile 里，让模型调用 `plugin_manager` 工具：
+**先 clone 下来**（本包未发布到 npm，所以只能用本地路径）：
+
+```bash
+git clone https://github.com/kemomimi12/dsh-auto-continue.git D:/plugins/dsh-auto-continue
+```
+
+然后让 dsh 里的模型调用 `plugin_manager` 工具：
 
 ```
-install_bundle  target: <这个仓库的绝对路径或 npm 包名>
-```
-
-例如把仓库 clone 到 `D:\plugins\dsh-auto-continue` 后：
-
-```
-install_bundle  target: D:\plugins\dsh-auto-continue
+install_bundle  target: D:/plugins/dsh-auto-continue
 ```
 
 `install_bundle` 会自己处理 pnpm 安装、写 profile 的 `package.json` 与 bundle 列表，**不要手工编辑**。
@@ -200,14 +200,14 @@ Do not repeat tool calls whose results are already in the transcript.
 ## 测试
 
 ```bash
-npm test          # 21 项行为测试
+npm test             # 28 项行为测试（含 7 项启动自检用例）
 npm run test:storm   # 风暴合并效果演示
 npm run test:replay  # 真实故障序列回放
 ```
 
 | 文件 | 作用 |
 |---|---|
-| `test.mjs` | 21 项行为测试，用假 host 驱动真实插件逻辑 |
+| `test.mjs` | 28 项行为测试，用假 host 驱动真实插件逻辑 |
 | `storm.mjs` | 对比有/无风暴合并：同一次故障从 5 次续行降到 1 次 |
 | `replay.mjs` | 用 2026-10-21 真实会话事件序列回放决策 |
 
@@ -220,7 +220,7 @@ npm run test:replay  # 真实故障序列回放
 - **只在轮次边界工作。** 它不能修复一次失败的请求本身，只能在该轮次结束后重开一轮。
 - **续行会多花一次完整上下文。** 这是它排在 `retryPolicy` 之后的原因。
 - **没有持久化状态。** 插件状态在内存里，dsh 重启后预算与风暴记录归零。
-- **未在多个 dsh 版本上验证。** 依赖的公开接口是 `agent/status`、`agent/session`、`agent/inbox`、`agent.followup()` 与 `session/event`。若上游改了这些，插件需要跟进。
+- **未在多个 dsh 版本上验证。** 依赖的公开接口见下方[启动自检](#启动自检)；自检能挡住接口缺失，但挡不住**语义变化**（例如 `followup` 还在、但行为改了）。
 - **子代理会话默认也管。** 若子代理失败后你想让它直接结束，把 `includeSubagents` 设为 `false`。
 
 ## 兼容性
