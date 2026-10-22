@@ -1,0 +1,6 @@
+url: https://github.com/kemomimi12/dsh-auto-continue
+name: kemomimi12/dsh-auto-continue
+category: dev
+description:
+  en: 'Resumes a session at the turn boundary after a transient model-request failure ends it, with permanent failures skipped, one resume per provider outage, and a manual stop always winning.'
+  zh: '模型请求临时失败导致轮次中断后自动续行；跳过永久性错误，同一次网关故障只续一次，手动停止永远优先。'
