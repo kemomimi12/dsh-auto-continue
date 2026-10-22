@@ -1,6 +1,6 @@
 {
   "name": "@xfufu/dsh-auto-continue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatic turn-level resume for DeepSeek Harness sessions: continues after transient model-request failures, merges provider outages into one storm, and always yields to a manual stop.",
   "type": "module",
   "license": "MIT",
