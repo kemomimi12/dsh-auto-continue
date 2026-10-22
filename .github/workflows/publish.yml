@@ -25,6 +25,10 @@ on:
 
 permissions:
   contents: read
+  # `npm publish --provenance` mints a signed provenance statement through
+  # GitHub's OIDC token, which requires write access to id-token. Without it
+  # npm fails with EUSAGE before it ever reaches the registry.
+  id-token: write
 
 jobs:
   publish:
